@@ -7,9 +7,10 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    GA ga;
+    GA ga(4);
 
-    ga.magicSquare.printSquare();
+    ga.exec();
+   // ga.magicSquare.printSquare();
 
 
 

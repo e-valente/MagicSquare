@@ -1,45 +1,710 @@
 #include "ga.h"
 #include <iostream>
+#include <cmath>
+#include <cstdlib>
 
 using namespace std;
-GA::GA()
+GA::GA(int sizeSquare)
 {
-    cout << "GA object has just created..\n";
+    goal =  0.5 * sizeSquare*((sizeSquare * sizeSquare)-1);
+}
 
 
-    setGenotype1(16);
+void GA::exec()
+{
+    int count = 0;
+
+    do{
+        calculateFitness();
+        cout <<"antes iter: " << count <<"\n";
+        magicSquare.printSquare();
+        crossOver();
+
+        cout <<"depois:\n\n";
+        magicSquare.printSquare();
+        count++;
+    }while(count < 1000);
+
+    magicSquare.printSquare();
+
+
+}
+
+void GA::calculateFitness()
+{
+    int worstIndex, sum;
+
+    worstDeviation = -1;
+    worstIndex = -1;
+
+    for(int i = 0; i < 10; i++)
+    {
+        sum = magicSquare.calculateSum(i+1);
+        sum -= goal;
+        sum = abs(sum);
+        //cout <<"sum, index: " << magicSquare.calculateSum(i+1) << " " << i+1 << endl;
+        if(sum  > worstDeviation)
+        {
+            worstDeviation = sum;
+            worstIndex = i + 1;
+        }
+
+    }
+
+
+    worstLine1 = worstIndex;
+
+    worstDeviation = -1;
+
+
+    for(int i = 0; i < 10; i++)
+    {
+        if(i+1 != worstLine1)
+        {
+            sum = magicSquare.calculateSum(i+1);
+            sum -= goal;
+            sum = abs(sum);
+            //cout <<"sum, index: " << magicSquare.calculateSum(i+1) << " " << i+1 << endl;
+            if(sum  > worstDeviation)
+            {
+                worstDeviation = sum;
+                worstIndex = i + 1;
+            }
+        }
+    }
+
+    worstLine2 = worstIndex;
+
+
+    cout <<"piores desvios: "<< worstDeviation <<"  mostrando indice da linha " << worstLine1<< " "
+        << worstLine2 << endl;
+
+
+
+
+
+}
+
+void GA::crossOver()
+{
+
+    //obtem inteiros das 2 piores filas
+    setFenotypes();
+
+
+    /*primeiro inteiro*/
+    //inteiro -> bin (chromossomo)
+    setChromosome1(fenotype1_1);
+    setChromosome2(fenotype2_1);
+
+    cout <<"fen1 e fen2" << fenotype1_1 << " " << fenotype2_1 << endl;
+    cout <<"cromossomos antes: \n";
+    cout <<chromosome1[3] << chromosome1[2] << chromosome1[1] << chromosome1[0] << endl;
+    cout <<chromosome2[3] << chromosome2[2] << chromosome2[1] << chromosome2[0] << endl;
+
+
+
+    //swap
+    swap(chromosome1[0], chromosome1[2]);
+    swap(chromosome1[2], chromosome1[3]);
+    swap(chromosome2[0], chromosome2[2]);
+    swap(chromosome2[2], chromosome2[3]);
+
+
+    fenotype1_1 = getFenotypeFromChromosome1();
+    fenotype2_1 = getFenotypeFromChromosome2();
+    cout <<"cromossomos depois: \n";
+    cout <<chromosome1[3] << chromosome1[2] << chromosome1[1] << chromosome1[0] << endl;
+    cout <<chromosome2[3] << chromosome2[2] << chromosome2[1] << chromosome2[0] << endl;
+
+
+    cout <<"fen1 e fen2" << fenotype1_1 << " " << fenotype2_1 << endl;
+
+    /*segundo inteiro*/
+    //inteiro -> bin (chromossomo)
+    setChromosome1(fenotype1_2);
+    setChromosome2(fenotype2_2);
+
+    //swap
+    swap(chromosome1[0], chromosome1[2]);
+    swap(chromosome1[2], chromosome1[3]);
+    swap(chromosome2[0], chromosome2[2]);
+    swap(chromosome2[2], chromosome2[3]);
+
+    fenotype1_2 = getFenotypeFromChromosome1();
+    fenotype2_2 = getFenotypeFromChromosome2();
+
+    /*terceiro inteiro*/
+    //inteiro -> bin (chromossomo)
+    setChromosome1(fenotype1_3);
+    setChromosome2(fenotype2_3);
+
+    //swap
+    swap(chromosome1[0], chromosome1[2]);
+    swap(chromosome1[2], chromosome1[3]);
+    swap(chromosome2[0], chromosome2[2]);
+    swap(chromosome2[2], chromosome2[3]);
+
+
+    fenotype1_3 = getFenotypeFromChromosome1();
+    fenotype2_3 = getFenotypeFromChromosome2();
+
+    /*quarto inteiro*/
+    //inteiro -> bin (chromossomo)
+    setChromosome1(fenotype1_4);
+    setChromosome2(fenotype2_4);
+
+    //swap
+    swap(chromosome1[0], chromosome1[2]);
+    swap(chromosome1[2], chromosome1[3]);
+    swap(chromosome2[0], chromosome2[2]);
+    swap(chromosome2[2], chromosome2[3]);
+
+
+    fenotype1_4 = getFenotypeFromChromosome1();
+    fenotype2_4 = getFenotypeFromChromosome2();
+
+
+
+
+    fenotypesToSquare();
+
+
+
+}
+
+void GA::fenotypesToSquare()
+{
+    int n;
+
+    if(worstLine1 == 1)
+    {
+        magicSquare.square[0][0] = fenotype1_1; magicSquare.square[0][1] = fenotype1_2;
+        magicSquare.square[0][2] = fenotype1_3; magicSquare.square[0][3] = fenotype1_4;
+        repairSquare(1);
+
+    }
+
+    if(worstLine2 == 1)
+    {
+        magicSquare.square[0][0] = fenotype2_1; magicSquare.square[0][1] = fenotype2_2;
+        magicSquare.square[0][2] = fenotype2_3; magicSquare.square[0][3] = fenotype2_4;
+        repairSquare(1);
+
+    }
+
+    if(worstLine1 == 2)
+    {
+        magicSquare.square[1][0] = fenotype1_1; magicSquare.square[1][1] = fenotype1_2;
+        magicSquare.square[1][2] = fenotype1_3; magicSquare.square[1][3] = fenotype1_4;
+        repairSquare(2);
+
+    }
+
+    if(worstLine2 == 2)
+    {
+        magicSquare.square[1][0] = fenotype2_1; magicSquare.square[1][1] = fenotype2_2;
+        magicSquare.square[1][2] = fenotype2_3; magicSquare.square[1][3] = fenotype2_4;
+        repairSquare(2);
+
+    }
+
+    if(worstLine1 == 3)
+    {
+        magicSquare.square[1][0] = fenotype1_1; magicSquare.square[1][1] = fenotype1_2;
+        magicSquare.square[1][2] = fenotype1_3; magicSquare.square[1][3] = fenotype1_4;
+        repairSquare(3);
+
+    }
+
+    if(worstLine2 == 3)
+    {
+        magicSquare.square[2][0] = fenotype2_1; magicSquare.square[2][1] = fenotype2_2;
+        magicSquare.square[2][2] = fenotype2_3; magicSquare.square[2][3] = fenotype2_4;
+        repairSquare(3);
+
+    }
+
+    if(worstLine1 == 4)
+    {
+        magicSquare.square[3][0] = fenotype1_1; magicSquare.square[3][1] = fenotype1_2;
+        magicSquare.square[3][2] = fenotype1_3; magicSquare.square[3][3] = fenotype1_4;
+        repairSquare(4);
+
+    }
+
+    if(worstLine2 == 4)
+    {
+        magicSquare.square[3][0] = fenotype2_1; magicSquare.square[3][1] = fenotype2_2;
+        magicSquare.square[3][2] = fenotype2_3; magicSquare.square[3][3] = fenotype2_4;
+        repairSquare(4);
+
+    }
+
+
+    if(worstLine1 == 5)
+    {
+        magicSquare.square[0][0] = fenotype1_1; magicSquare.square[1][0] = fenotype1_2;
+        magicSquare.square[2][0] = fenotype1_3; magicSquare.square[3][0] = fenotype1_4;
+        repairSquare(5);
+
+    }
+
+    if(worstLine2 == 5)
+    {
+        magicSquare.square[0][0] = fenotype2_1; magicSquare.square[1][0] = fenotype2_2;
+        magicSquare.square[2][0] = fenotype2_3; magicSquare.square[3][0] = fenotype2_4;
+        repairSquare(5);
+
+    }
+
+    if(worstLine1 == 6)
+    {
+        magicSquare.square[0][1] = fenotype1_1; magicSquare.square[1][1] = fenotype1_2;
+        magicSquare.square[2][1] = fenotype1_3; magicSquare.square[3][1] = fenotype1_4;
+        repairSquare(6);
+
+    }
+
+    if(worstLine2 == 6)
+    {
+        magicSquare.square[0][1] = fenotype2_1; magicSquare.square[1][1] = fenotype2_2;
+        magicSquare.square[2][1] = fenotype2_3; magicSquare.square[3][1] = fenotype2_4;
+        repairSquare(6);
+    }
+
+    if(worstLine1 == 7)
+    {
+        magicSquare.square[0][2] = fenotype1_1; magicSquare.square[1][2] = fenotype1_2;
+        magicSquare.square[2][2] = fenotype1_3; magicSquare.square[3][2] = fenotype1_4;
+        repairSquare(7);
+
+    }
+
+    if(worstLine2 == 7)
+    {
+        magicSquare.square[0][2] = fenotype2_1; magicSquare.square[1][2] = fenotype2_2;
+        magicSquare.square[2][2] = fenotype2_3; magicSquare.square[3][2] = fenotype2_4;
+        repairSquare(7);
+
+    }
+
+    if(worstLine1 == 8)
+    {
+        magicSquare.square[0][3] = fenotype1_1; magicSquare.square[1][3] = fenotype1_2;
+        magicSquare.square[2][3] = fenotype1_3; magicSquare.square[3][3] = fenotype1_4;
+        repairSquare(8);
+
+    }
+
+    if(worstLine2 == 8)
+    {
+        magicSquare.square[0][3] = fenotype2_1; magicSquare.square[1][3] = fenotype2_2;
+        magicSquare.square[2][3] = fenotype2_3; magicSquare.square[3][3] = fenotype2_4;
+        repairSquare(8);
+
+    }
+
+    if(worstLine1 == 9)
+    {
+        magicSquare.square[0][0] = fenotype1_1; magicSquare.square[1][1] = fenotype1_2;
+        magicSquare.square[2][2] = fenotype1_3; magicSquare.square[3][3] = fenotype1_4;
+        repairSquare(9);
+
+    }
+
+    if(worstLine2 == 9)
+    {
+        magicSquare.square[0][0] = fenotype2_1; magicSquare.square[1][1] = fenotype2_2;
+        magicSquare.square[2][2] = fenotype2_3; magicSquare.square[3][3] = fenotype2_4;
+        repairSquare(9);
+
+    }
+
+    if(worstLine1 == 10)
+    {
+        magicSquare.square[0][3] = fenotype1_1; magicSquare.square[1][2] = fenotype1_2;
+        magicSquare.square[2][1] = fenotype1_3; magicSquare.square[3][0] = fenotype1_4;
+        repairSquare(10);
+
+    }
+
+    if(worstLine2 == 10)
+    {
+        magicSquare.square[0][3] = fenotype2_1; magicSquare.square[1][2] = fenotype2_2;
+        magicSquare.square[2][1] = fenotype2_3; magicSquare.square[3][0] = fenotype2_4;
+        repairSquare(10);
+
+    }
 
 
 
 }
 
 
-int GA::setGenotype1(int fenotype)
+void GA::setFenotypes()
+{
+    if(worstLine1 == 1)
+    {
+        fenotype1_1 = magicSquare.square[0][0]; fenotype1_2 = magicSquare.square[0][1];
+        fenotype1_3 = magicSquare.square[0][2]; fenotype1_4 = magicSquare.square[0][3];
+    }
+
+    if(worstLine2 == 1)
+    {
+        fenotype2_1 = magicSquare.square[0][0]; fenotype2_2 = magicSquare.square[0][1];
+        fenotype2_3 = magicSquare.square[0][2]; fenotype2_4 = magicSquare.square[0][3];
+    }
+
+
+    if(worstLine1 == 2)
+    {
+        fenotype1_1 = magicSquare.square[1][0]; fenotype1_2 = magicSquare.square[1][1];
+        fenotype1_3 = magicSquare.square[1][2]; fenotype1_4 = magicSquare.square[1][3];
+    }
+
+    if(worstLine2 == 2)
+    {
+        fenotype2_1 = magicSquare.square[1][0]; fenotype2_2 = magicSquare.square[1][1];
+        fenotype2_3 = magicSquare.square[1][2]; fenotype2_4 = magicSquare.square[1][3];
+    }
+
+
+    if(worstLine1 == 3)
+    {
+        fenotype1_1 = magicSquare.square[2][0]; fenotype1_2 = magicSquare.square[2][1];
+        fenotype1_3 = magicSquare.square[2][2]; fenotype1_4 = magicSquare.square[2][3];
+    }
+
+    if(worstLine2 == 3)
+    {
+        fenotype2_1 = magicSquare.square[2][0]; fenotype2_2 = magicSquare.square[2][1];
+        fenotype2_3 = magicSquare.square[2][2]; fenotype2_4 = magicSquare.square[2][3];
+    }
+
+    if(worstLine1 == 4)
+    {
+        fenotype1_1 = magicSquare.square[3][0]; fenotype1_2 = magicSquare.square[3][1];
+        fenotype1_3 = magicSquare.square[3][2]; fenotype1_4 = magicSquare.square[3][3];
+    }
+
+    if(worstLine2 == 4)
+    {
+        fenotype2_1 = magicSquare.square[3][0]; fenotype2_2 = magicSquare.square[3][1];
+        fenotype2_3 = magicSquare.square[3][2]; fenotype2_4 = magicSquare.square[3][3];
+    }
+
+    if(worstLine1 == 5)
+    {
+        fenotype1_1 = magicSquare.square[0][0]; fenotype1_2 = magicSquare.square[1][0];
+        fenotype1_3 = magicSquare.square[2][0]; fenotype1_4 = magicSquare.square[3][0];
+    }
+
+    if(worstLine2 == 5)
+    {
+        fenotype2_1 = magicSquare.square[0][0]; fenotype2_2 = magicSquare.square[1][0];
+        fenotype2_3 = magicSquare.square[2][0]; fenotype2_4 = magicSquare.square[3][0];
+    }
+
+    if(worstLine1 == 6)
+    {
+        fenotype1_1 = magicSquare.square[0][1]; fenotype1_2 = magicSquare.square[1][1];
+        fenotype1_3 = magicSquare.square[2][1]; fenotype1_4 = magicSquare.square[3][1];
+    }
+
+    if(worstLine2 == 6)
+    {
+        fenotype2_1 = magicSquare.square[0][1]; fenotype2_2 = magicSquare.square[1][1];
+        fenotype2_3 = magicSquare.square[2][1]; fenotype2_4 = magicSquare.square[3][1];
+    }
+
+
+    if(worstLine1 == 7)
+    {
+        fenotype1_1 = magicSquare.square[0][2]; fenotype1_2 = magicSquare.square[1][2];
+        fenotype1_3 = magicSquare.square[2][2]; fenotype1_4 = magicSquare.square[3][2];
+    }
+
+    if(worstLine2 == 7)
+    {
+        fenotype2_1 = magicSquare.square[0][2]; fenotype2_2 = magicSquare.square[1][2];
+        fenotype2_3 = magicSquare.square[2][2]; fenotype2_4 = magicSquare.square[3][2];
+    }
+
+    if(worstLine1 == 8)
+    {
+        fenotype1_1 = magicSquare.square[0][3]; fenotype1_2 = magicSquare.square[1][3];
+        fenotype1_3 = magicSquare.square[2][2]; fenotype1_4 = magicSquare.square[3][3];
+    }
+
+    if(worstLine2 == 8)
+    {
+        fenotype2_1 = magicSquare.square[0][3]; fenotype2_2 = magicSquare.square[1][3];
+        fenotype2_3 = magicSquare.square[3][3]; fenotype2_4 = magicSquare.square[3][3];
+    }
+
+    if(worstLine1 == 9)
+    {
+        fenotype1_1 = magicSquare.square[0][0]; fenotype1_2 = magicSquare.square[1][1];
+        fenotype1_3 = magicSquare.square[2][2]; fenotype1_4 = magicSquare.square[3][3];
+    }
+
+    if(worstLine2 == 9)
+    {
+        fenotype2_1 = magicSquare.square[0][0]; fenotype2_2 = magicSquare.square[1][1];
+        fenotype2_3 = magicSquare.square[2][2]; fenotype2_4 = magicSquare.square[3][3];
+    }
+
+
+    if(worstLine1 == 10)
+    {
+        fenotype1_1 = magicSquare.square[0][3]; fenotype1_2 = magicSquare.square[1][2];
+        fenotype1_3 = magicSquare.square[2][1]; fenotype1_4 = magicSquare.square[3][0];
+    }
+
+    if(worstLine2 == 10)
+    {
+        fenotype2_1 = magicSquare.square[0][3]; fenotype2_2 = magicSquare.square[1][2];
+        fenotype2_3 = magicSquare.square[2][1]; fenotype2_4 = magicSquare.square[3][0];
+    }
+}
+
+int GA::setChromosome1(int fenotype)
 {
     if(fenotype > 16) return 0;
 
     fenotype--;
 
-    genotype1[3] = (fenotype & 8) >> 3;
-    genotype1[2] = (fenotype & 4) >> 2;
-    genotype1[1] = (fenotype & 2) >> 1;
-    genotype1[0] = (fenotype & 1);
+    chromosome1[3] = (fenotype & 8) >> 3;
+    chromosome1[2] = (fenotype & 4) >> 2;
+    chromosome1[1] = (fenotype & 2) >> 1;
+    chromosome1[0] = (fenotype & 1);
 
     return 1;
 
 }
 
-int GA::getFenotype(int *genotype)
+int GA::setChromosome2(int fenotype)
+{
+    if(fenotype > 16) return 0;
+
+    fenotype--;
+
+    chromosome2[3] = (fenotype & 8) >> 3;
+    chromosome2[2] = (fenotype & 4) >> 2;
+    chromosome2[1] = (fenotype & 2) >> 1;
+    chromosome2[0] = (fenotype & 1);
+
+    return 1;
+
+}
+
+int GA::getFenotypeFromChromosome1()
 {
     int n;
 
     n = 0;
 
     //bit order: 0001 = 1
-    n = genotype[0] + 2*genotype[1] + 4*genotype[2] + 8*genotype[3];
+    n = chromosome1[0] + 2*chromosome1[1] + 4*chromosome1[2] + 8*chromosome1[3];
 
     //saving one bit: 0000 = 1 and so on
     return n + 1;
 
 }
 
+
+int GA::getFenotypeFromChromosome2()
+{
+    int n;
+
+    n = 0;
+
+    //bit order: 0001 = 1
+    n = chromosome2[0] + 2*chromosome2[1] + 4*chromosome2[2] + 8*chromosome2[3];
+
+    //saving one bit: 0000 = 1 and so on
+    return n + 1;
+
+}
+
+void GA::repairSquare(int line)
+{
+    int n, count;
+
+    if(line == 1)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[0][i];
+            while(isAtSquare(n, 0, i))
+            {
+                n = (rand()%16) + 1;
+            }
+
+            magicSquare.square[0][i] = n;
+
+        }
+    }
+
+
+
+    if(line == 2)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[1][i];
+            while(isAtSquare(n, 1, i))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[1][i] = n;
+
+        }
+    }
+
+    if(line == 3)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[2][i];
+            while(isAtSquare(n, 2, i))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[2][i] = n;
+
+        }
+    }
+
+    if(line == 4)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[3][i];
+            while(isAtSquare(n, 3, i))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[3][i] = n;
+
+        }
+    }
+
+    if(line == 5)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[i][0];
+            while(isAtSquare(n, i, 0))
+            {
+                n = (rand()%16) + 1;
+            }
+
+            magicSquare.square[i][0] = n;
+
+        }
+    }
+
+
+    if(line == 6)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[i][1];
+            while(isAtSquare(n, i, 1))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[i][1] = n;
+
+        }
+    }
+
+    if(line == 7)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[i][2];
+            while(isAtSquare(n, i, 2))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[i][2] = n;
+
+        }
+    }
+
+    if(line == 8)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[i][3];
+            while(isAtSquare(n, i, 3))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[i][3] = n;
+
+        }
+
+    }
+
+
+    if(line == 9)
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            n = magicSquare.square[i][i];
+            while(isAtSquare(n, i, i))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[i][i] = n;
+
+        }
+    }
+
+    if(line == 10)
+    {
+        int j;
+        for(int i = 0, j = 3; i < 4; i++, j--)
+        {
+            n = magicSquare.square[i][j];
+            while(isAtSquare(n, i, j))
+            {
+                n = (rand()%16) + 1;
+            }
+            magicSquare.square[i][j] = n;
+
+        }
+    }
+
+
+
+}
+
+bool GA::isAtSquare(int value, int exceptPosition_i, int exceptPosition_j)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 4; j++)
+        {
+            if(i != exceptPosition_i || j != exceptPosition_j)
+            {
+                if(value == magicSquare.square[i][j])return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void GA::swap(int &n1, int &n2)
+{
+    int tmp;
+
+    tmp = n1;
+    n1 = n2;
+    n2 = tmp;
+}

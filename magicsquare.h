@@ -12,8 +12,12 @@ class MagicSquare
 {
 public:
     Square square;
+
+
+    //public methods
     MagicSquare();
     MagicSquare(int);
+    int calculateSum(int);
     void printSquare();
 
 private:

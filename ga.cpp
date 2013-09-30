@@ -7,6 +7,7 @@ using namespace std;
 GA::GA(int sizeSquare)
 {
     goal =  0.5 * sizeSquare*((sizeSquare * sizeSquare)-1);
+    //goal = 34;
 }
 
 
@@ -14,17 +15,37 @@ void GA::exec()
 {
     int count = 0;
 
+    cout <<"Objetivo: soma de todas as filas: " << goal << endl;
+    cout <<"Estado inicial do quadrado:\n";
+    magicSquare.printSquare();
+
+    srand(magicSquare.mysrand());
+
     do{
         calculateFitness();
-        cout <<"antes iter: " << count <<"\n";
-        magicSquare.printSquare();
+
+        //roleta
+        //70% de prob pra pegar as
+        //2 piores linhas
+        //30% de prob: linhas aleatorias
+        if(((rand()%10) +1) > 7)
+        {
+            worstLine1 = ((rand()%10) +1);
+            worstLine2 = ((rand()%10) +1);
+
+        }
+
+        //magicSquare.printSquare();
+
         crossOver();
 
-        cout <<"depois:\n\n";
-        magicSquare.printSquare();
+        //magicSquare.printSquare();
         count++;
-    }while(count < 1000);
 
+
+    }while(count < 10000);
+
+    cout << "Melhor quadrado apos 10000 geracoes:\n";
     magicSquare.printSquare();
 
 
@@ -76,8 +97,8 @@ void GA::calculateFitness()
     worstLine2 = worstIndex;
 
 
-    cout <<"piores desvios: "<< worstDeviation <<"  mostrando indice da linha " << worstLine1<< " "
-        << worstLine2 << endl;
+//    cout <<"piores desvios: "<< worstDeviation <<"  mostrando indice da linha " << worstLine1<< " "
+//        << worstLine2 << endl;
 
 
 
@@ -97,28 +118,17 @@ void GA::crossOver()
     setChromosome1(fenotype1_1);
     setChromosome2(fenotype2_1);
 
-    cout <<"fen1 e fen2" << fenotype1_1 << " " << fenotype2_1 << endl;
-    cout <<"cromossomos antes: \n";
-    cout <<chromosome1[3] << chromosome1[2] << chromosome1[1] << chromosome1[0] << endl;
-    cout <<chromosome2[3] << chromosome2[2] << chromosome2[1] << chromosome2[0] << endl;
-
-
 
     //swap
-    swap(chromosome1[0], chromosome1[2]);
-    swap(chromosome1[2], chromosome1[3]);
-    swap(chromosome2[0], chromosome2[2]);
-    swap(chromosome2[2], chromosome2[3]);
+    swap(chromosome1[0], chromosome2[2]);
+    swap(chromosome1[1], chromosome2[3]);
+
 
 
     fenotype1_1 = getFenotypeFromChromosome1();
     fenotype2_1 = getFenotypeFromChromosome2();
-    cout <<"cromossomos depois: \n";
-    cout <<chromosome1[3] << chromosome1[2] << chromosome1[1] << chromosome1[0] << endl;
-    cout <<chromosome2[3] << chromosome2[2] << chromosome2[1] << chromosome2[0] << endl;
 
 
-    cout <<"fen1 e fen2" << fenotype1_1 << " " << fenotype2_1 << endl;
 
     /*segundo inteiro*/
     //inteiro -> bin (chromossomo)
@@ -126,11 +136,8 @@ void GA::crossOver()
     setChromosome2(fenotype2_2);
 
     //swap
-    swap(chromosome1[0], chromosome1[2]);
-    swap(chromosome1[2], chromosome1[3]);
-    swap(chromosome2[0], chromosome2[2]);
-    swap(chromosome2[2], chromosome2[3]);
-
+    swap(chromosome1[0], chromosome2[2]);
+    swap(chromosome1[1], chromosome2[3]);
     fenotype1_2 = getFenotypeFromChromosome1();
     fenotype2_2 = getFenotypeFromChromosome2();
 
@@ -140,10 +147,8 @@ void GA::crossOver()
     setChromosome2(fenotype2_3);
 
     //swap
-    swap(chromosome1[0], chromosome1[2]);
-    swap(chromosome1[2], chromosome1[3]);
-    swap(chromosome2[0], chromosome2[2]);
-    swap(chromosome2[2], chromosome2[3]);
+    swap(chromosome1[0], chromosome2[2]);
+    swap(chromosome1[1], chromosome2[3]);
 
 
     fenotype1_3 = getFenotypeFromChromosome1();
@@ -155,12 +160,8 @@ void GA::crossOver()
     setChromosome2(fenotype2_4);
 
     //swap
-    swap(chromosome1[0], chromosome1[2]);
-    swap(chromosome1[2], chromosome1[3]);
-    swap(chromosome2[0], chromosome2[2]);
-    swap(chromosome2[2], chromosome2[3]);
-
-
+    swap(chromosome1[0], chromosome2[2]);
+    swap(chromosome1[1], chromosome2[3]);
     fenotype1_4 = getFenotypeFromChromosome1();
     fenotype2_4 = getFenotypeFromChromosome2();
 
@@ -531,6 +532,8 @@ int GA::getFenotypeFromChromosome2()
 void GA::repairSquare(int line)
 {
     int n, count;
+
+    srand(magicSquare.mysrand());
 
     if(line == 1)
     {

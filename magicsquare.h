@@ -19,13 +19,14 @@ public:
     MagicSquare(int);
     int calculateSum(int);
     void printSquare();
+    long int mysrand();
 
 private:
     vector<int> checkVector;
     int sizeSquare;
     void randomLoadSquare();
     bool numberIsSquare(int);
-    long int mysrand();
+
 };
 
 #endif // MAGICSQUARE_H
